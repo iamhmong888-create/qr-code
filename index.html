@@ -37,6 +37,9 @@ header .txt{flex:1;min-width:0}
 header h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,4.5vw,40px);line-height:1.15;margin:0;text-wrap:balance;letter-spacing:-.01em}
 header h1 .hl{color:var(--accent)} header h1 .hl2{color:var(--coral)}
 header p{margin:6px 0 0;color:var(--muted);max-width:60ch}
+.badge{display:inline-flex;align-items:center;gap:10px;margin-top:14px;padding:10px 20px 10px 14px;border-radius:999px;
+  background:var(--accent);color:var(--accent-ink);font:700 clamp(18px,2.6vw,24px)/1.2 var(--f-display);box-shadow:0 4px 14px rgba(14,138,122,.28)}
+.badge svg{width:1.3em;height:1.3em;flex:none}
 .mark{flex:none;display:grid;grid-template-columns:repeat(3,14px);gap:4px}
 .mark i{width:14px;height:14px;border-radius:3px;display:block}
 .mark i:nth-child(1){background:var(--accent)}.mark i:nth-child(2){background:var(--sun)}.mark i:nth-child(3){background:var(--coral)}
@@ -88,7 +91,8 @@ footer{color:var(--muted);font-size:13px;text-align:center}
     <div class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="txt">
       <h1>สร้าง <span class="hl">QR</span> <span class="hl2">Code</span></h1>
-      <p>วางลิงก์ แล้วได้ QR Code พร้อมบันทึกเป็นรูป PNG ไปใช้บนเอกสาร ป้ายประกาศ หรือสไลด์ <span class="chip">QR แบบถาวร ไม่มีวันหมดอายุ</span></p>
+      <p>วางลิงก์ แล้วได้ QR Code พร้อมบันทึกเป็นรูป PNG ไปใช้บนเอกสาร ป้ายประกาศ หรือสไลด์</p>
+      <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>QR แบบถาวร ไม่มีวันหมดอายุ</div>
     </div>
   </header>
 
