@@ -53,7 +53,8 @@ header p{margin:6px 0 0;color:var(--muted);max-width:60ch}
 .ptitle{font:700 18px/1.3 var(--f-display);margin:0;display:flex;align-items:center;gap:8px}
 .ptitle svg{width:20px;height:20px;color:var(--accent)}
 label.lbl{display:block;font:600 13px/1.3 var(--f-display);letter-spacing:.04em;color:var(--muted);margin-bottom:6px}
-input[type=url],input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:11px 12px}
+textarea{resize:vertical;min-height:4.6em;line-height:1.5;display:block}
+input[type=url],input[type=text],textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:11px 12px}
 input[type=url]{font-family:var(--f-mono);font-size:14px}
 input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .urlrow{display:flex;gap:8px}
@@ -137,8 +138,8 @@ footer{color:var(--muted);font-size:13px;text-align:center}
       </div>
       <div>
         <label class="lbl" for="caption">ข้อความใต้ QR (ไม่บังคับ)</label>
-        <input type="text" id="caption" maxlength="120" placeholder="เช่น สแกนเพื่อดาวน์โหลดเอกสาร พต.1-22">
-        <div class="hint">ข้อความนี้จะติดไปในไฟล์ PNG ด้วย ยาวได้ 2 บรรทัด</div>
+        <textarea id="caption" rows="2" maxlength="160" placeholder="เช่น รวมร่องรอยตัวชี้วัดที่ 2.2&#10;การเรียนรู้ตลอดชีวิต"></textarea>
+        <div class="hint">กด Enter เพื่อขึ้นบรรทัดใหม่ตรงจุดที่ต้องการ ได้สูงสุด 3 บรรทัด ข้อความนี้จะติดไปในไฟล์ PNG ด้วย</div>
       </div>
     </section>
 
@@ -186,17 +187,25 @@ footer{color:var(--muted);font-size:13px;text-align:center}
     const qr=qrcode(0,$("ecl").value); qr.addData(text); qr.make();
     const n=qr.getModuleCount(), quiet=4, cell=Math.floor(px/(n+quiet*2)) || 1;
     const size=cell*(n+quiet*2);
-    // Caption: wrap on Thai word boundaries, up to 2 lines, shrink before truncating
+    // Caption: keep the user's own line breaks, wrap long lines on Thai word boundaries,
+    // up to 3 lines in all, shrink the text before truncating
+    const MAXL=3;
     let lines=[], fs=0, lh=0;
     if (cap){
-      const maxW=size*0.88, minFs=Math.max(10,Math.round(size*0.032));
-      const seg = (window.Intl && Intl.Segmenter) ? Array.from(new Intl.Segmenter("th",{granularity:"word"}).segment(cap),s=>s.segment) : Array.from(cap);
-      const wrap=f=>{ ctx.font=`600 ${f}px K2D, sans-serif`; const out=[]; let line="";
-        for(const w of seg){ if(line && ctx.measureText(line+w).width>maxW){ out.push(line.trim()); line=w.trimStart(); } else line+=w; }
-        if(line.trim()) out.push(line.trim()); return out; };
+      const maxW=size*0.88, minFs=Math.max(10,Math.round(size*0.03));
+      const seger = (window.Intl && Intl.Segmenter) ? new Intl.Segmenter("th",{granularity:"word"}) : null;
+      const paras = cap.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+      const wrap=f=>{ ctx.font=`600 ${f}px K2D, sans-serif`; const out=[];
+        for (const p of paras){
+          const seg = seger ? Array.from(seger.segment(p),s=>s.segment) : Array.from(p);
+          let line="";
+          for(const w of seg){ if(line && ctx.measureText(line+w).width>maxW){ out.push(line.trim()); line=w.trimStart(); } else line+=w; }
+          if(line.trim()) out.push(line.trim());
+        }
+        return out; };
       fs=Math.round(size*0.05); lines=wrap(fs);
-      while(lines.length>2 && fs>minFs){ fs--; lines=wrap(fs); }
-      if(lines.length>2){ lines=lines.slice(0,2); let l=lines[1]; while(l && ctx.measureText(l+"…").width>maxW) l=l.slice(0,-1); lines[1]=l+"…"; }
+      while(lines.length>MAXL && fs>minFs){ fs--; lines=wrap(fs); }
+      if(lines.length>MAXL){ lines=lines.slice(0,MAXL); let l=lines[MAXL-1]; while(l && ctx.measureText(l+"…").width>maxW) l=l.slice(0,-1); lines[MAXL-1]=l+"…"; }
       lh=Math.round(fs*1.45);
     }
     const capH = lines.length ? lines.length*lh + Math.round(cell*quiet*0.6) : 0;
@@ -232,7 +241,7 @@ footer{color:var(--muted);font-size:13px;text-align:center}
   $("save").onclick=()=>{
     const text=currentText(); if(!text) return;
     const c=document.createElement("canvas"); drawQR(c, text, +$("size").value);
-    const cap=$("caption").value.trim();
+    const cap=$("caption").value.replace(/\s+/g," ").trim();
     const base = cap || (()=>{ try{return new URL(text).hostname}catch(e){return "link"} })();
     const filename = "QR-"+base.replace(/[\\/:*?"<>|]+/g,"-").slice(0,60)+".png";
     c.toBlob(blob=>{
